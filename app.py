@@ -1,40 +1,26 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[19]:
-
-
-import numpy as np
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, render_template, request
 import pickle
-
-
-# In[23]:
-
+import numpy as np
 
 app = Flask(__name__)
-model = pickle.load(open('model.pkl','rb'))
 
-@app.route("/predict", methods = ["POST"])
+# Load the pickled linear regression model
+with open('model.pkl', 'rb') as f:
+    model = pickle.load(f)
+
+
+@app.route('/')
+def prediction():
+    return render_template('index.html')
+
+# Define a route for the prediction API
+@app.route('/predict', methods=['POST'])
 def predict():
-    float_features = [float(x) for x in request.form.values()]
-    features = [np.array(float_features)]
-    prediction = model.predict(features)
-    output = prediction[0]
-    return jsonify(output)
+    
+    data = request.form
+    prediction_features = np.array([data['feature_1'], data['feature_2'], data['feature_3'],data['feature_4'],data['feature_5']]).astype(float)
+    prediction = model.predict(prediction_features.reshape(1,-1))[0]
+    return render_template('Prediction.html', prediction=prediction)
 
-if __name__ == "__main__":
-    app.run(debug=True)
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
+if __name__ == '__main__':
+    app.run(port=5000, debug=True)
